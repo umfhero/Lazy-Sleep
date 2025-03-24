@@ -3,7 +3,7 @@
 A customizable shutdown timer application with both slider and manual time input options.
 
 <p align="center">
-  <img width="69.8" height="56.3" src="Sleepy.png">
+  <img width="698" height="563" src="Sleepy.png">
 </p>
 ## Why I Made This
 
