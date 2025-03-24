@@ -2,9 +2,8 @@
 
 A customizable shutdown timer application with both slider and manual time input options.
 
-![Lazy Sleep Screenshot](/Sleepy.png)
 <p align="center">
-  <img width="460" height="300" src="Sleepy.png">
+  <img width="69.8" height="56.3" src="Sleepy.png">
 </p>
 ## Why I Made This
 
