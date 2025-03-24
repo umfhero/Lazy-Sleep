@@ -23,7 +23,8 @@ using_custom_time = False  # Track if we're using custom time input
 current_shutdown_minutes = 0  # Track current shutdown time
 
 # Configuration file to save preferences
-CONFIG_FILE = "config.json"
+CONFIG_FILE = os.path.join(os.path.dirname(sys.executable) if getattr(sys, 'frozen', False)
+                           else os.path.dirname(os.path.abspath(__file__)), "config.json")
 
 
 def get_microsoft_account_name():
@@ -48,7 +49,7 @@ def get_microsoft_account_name():
 
             # Fallback to local username if Microsoft account name not available
             username = getpass.getuser()
-            return username.capitalize()
+            return username.split()[0].capitalize() if ' ' in username else username.capitalize()
         return "User"
     except Exception as e:
         print(f"Error getting username: {e}")
@@ -57,15 +58,21 @@ def get_microsoft_account_name():
 
 def load_config():
     global current_theme
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, "r") as file:
-            config = json.load(file)
-            current_theme = config.get("theme", "dark_grey")
+    try:
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE, "r") as file:
+                config = json.load(file)
+                current_theme = config.get("theme", "dark_grey")
+    except Exception as e:
+        print(f"Error loading config: {e}")
 
 
 def save_config():
-    with open(CONFIG_FILE, "w") as file:
-        json.dump({"theme": current_theme}, file)
+    try:
+        with open(CONFIG_FILE, "w") as file:
+            json.dump({"theme": current_theme}, file)
+    except Exception as e:
+        print(f"Error saving config: {e}")
 
 
 def apply_theme(theme):
@@ -275,6 +282,14 @@ root = tk.Tk()
 root.title("Lazy Shutdown")
 root.geometry("700x550")
 root.attributes("-topmost", True)
+
+# Set window icon
+try:
+    icon_path = os.path.join(os.path.dirname(sys.executable) if getattr(sys, 'frozen', False)
+                             else os.path.dirname(os.path.abspath(__file__)), "clock2.ico")
+    root.iconbitmap(default=icon_path)
+except Exception as e:
+    print(f"Error loading icon: {e}")
 
 # Add greeting label with username
 greeting_label = tk.Label(root,

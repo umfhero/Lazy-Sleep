@@ -54,4 +54,5 @@ If I’m still awake and change my mind? No problem – one click cancels it. An
 - Windows 10/11
 - Python 3.6+
 
-pyinstaller LazySleep.py --noconsole --add-data "config.json;." --icon=clock1.ico
+delete build/dist
+pyinstaller --noconsole --add-data "config.json;." --add-data "clock2.ico;." --icon=clock2.ico LazySleep.py
