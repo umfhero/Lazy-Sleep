@@ -2,17 +2,12 @@
 
 A customizable shutdown timer application with both slider and manual time input options.
 
-App:
+App & Icon:
 
-<p align="center">
-  <img width="490" height="385" src="Sleepy.png">
+<p align="left">
+  <img width="490" height="385" src="Sleepy.png" style="margin-right: 20px;">
+  <img width="120" height="120" src="/exe icon.png" style="margin-left: 20px;">
 </p>
-
-Icon:
-<img align="left" width="150" height="150" src="/exe icon.png">
-
-
-
 
 ## Why I Made This
 
