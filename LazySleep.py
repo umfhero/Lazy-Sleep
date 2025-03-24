@@ -108,7 +108,34 @@ def apply_theme(theme):
                             insertbackground=fg_color)
     toggle_time_button.configure(bg="#555555", fg=fg_color)
 
+    update_slider_ticks()  # Update slider text colors when theme changes
     save_config()
+
+
+def update_slider_ticks():
+    tick_canvas.delete("all")
+    marker_canvas.delete("all")
+    label_canvas.delete("all")
+    pixels_per_minute = SLIDER_LENGTH / slider_max
+
+    # Determine text color based on theme
+    text_color = "white" if current_theme in [
+        "dark_grey", "black"] else "black"
+
+    # Draw ticks and labels
+    for minute in range(0, slider_max + 1, TICK_INTERVAL):
+        x = MARGIN + minute * pixels_per_minute
+        tick_canvas.create_text(x, 10, text=str(minute), font=("Helvetica", 10),
+                                anchor=tk.CENTER, fill=text_color)
+        marker_canvas.create_line(x, 0, x, 20, width=2, fill=text_color)
+
+    # Draw hour labels
+    for hour in range(0, (slider_max // 60) + 1):
+        minutes = hour * 60
+        x = MARGIN + minutes * pixels_per_minute
+        label_text = f"{hour} hour{'s' if hour != 1 else ''}"
+        label_canvas.create_text(x, 10, text=label_text, font=("Helvetica", 10),
+                                 anchor=tk.CENTER, fill=text_color)
 
 
 def toggle_time_input():
@@ -145,7 +172,7 @@ def set_custom_time():
 def update_time_display(minutes):
     global current_shutdown_minutes
     try:
-        current_shutdown_minutes = int(minutes)  # Convert to integer
+        current_shutdown_minutes = int(minutes)
         future_time = datetime.now() + timedelta(minutes=current_shutdown_minutes)
         time_label.config(
             text=f"Shutdown at: {future_time.strftime('%I:%M:%S %p')}")
@@ -325,7 +352,7 @@ theme_menu.pack(pady=5)
 # Special toggle time button (centered below the grid)
 toggle_time_button = tk.Button(btn_frame, text="Use Custom Time",
                                command=toggle_time_input, width=18, bg="#555555", fg="white")
-toggle_time_button.pack(pady=(15, 5))  # Extra padding to separate from grid
+toggle_time_button.pack(pady=(15, 5))
 
 invisibility_label = tk.Label(btn_frame, text="", font=(
     "Helvetica", 10), bg="#2E2E2E", fg="white")
@@ -352,27 +379,6 @@ marker_canvas.pack()
 label_canvas = tk.Canvas(slider_frame, width=SLIDER_LENGTH +
                          2*MARGIN, height=20, bg="#2E2E2E", highlightthickness=0)
 label_canvas.pack()
-
-
-def update_slider_ticks():
-    tick_canvas.delete("all")
-    marker_canvas.delete("all")
-    label_canvas.delete("all")
-    pixels_per_minute = SLIDER_LENGTH / slider_max
-
-    for minute in range(0, slider_max + 1, TICK_INTERVAL):
-        x = MARGIN + minute * pixels_per_minute
-        tick_canvas.create_text(x, 10, text=str(minute), font=(
-            "Helvetica", 10), anchor=tk.CENTER, fill="white")
-        marker_canvas.create_line(x, 0, x, 20, width=2, fill="white")
-
-    for hour in range(0, (slider_max // 60) + 1):
-        minutes = hour * 60
-        x = MARGIN + minutes * pixels_per_minute
-        label_text = f"{hour} hour{'s' if hour != 1 else ''}"
-        label_canvas.create_text(x, 10, text=label_text, font=(
-            "Helvetica", 10), anchor=tk.CENTER, fill="white")
-
 
 update_slider_ticks()
 
