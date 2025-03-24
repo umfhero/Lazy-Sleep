@@ -2,9 +2,15 @@
 
 A customizable shutdown timer application with both slider and manual time input options.
 
+App:
+
 <p align="center">
   <img width="490" height="385" src="Sleepy.png">
 </p>
+
+Icon:
+<img align="right" width="100" height="100" src="/exe icon.png">
+
 ## Why I Made This
 
 I made this because I like being lazy. When I’m in bed with just my mouse (no keyboard in reach), I want a simple way to set a shutdown timer without faffing about. **Lazy Sleep** lets me do exactly that. Just move a slider, click a button, and forget about it.
