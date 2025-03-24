@@ -4,7 +4,7 @@ import subprocess
 from datetime import datetime, timedelta
 import json
 import os
-import socket
+import getpass
 
 # Constants
 DEFAULT_MAX_MINUTES = 180  # Default slider max (3 hours)
@@ -24,9 +24,9 @@ current_shutdown_minutes = 0  # Track current shutdown time
 CONFIG_FILE = "config.json"
 
 
-def get_device_name():
+def get_user_name():
     try:
-        return socket.gethostname()
+        return getpass.getuser()
     except:
         return "User"
 
@@ -87,7 +87,7 @@ def apply_theme(theme):
     hours_entry.configure(bg=bg_color, fg=fg_color, insertbackground=fg_color)
     minutes_entry.configure(bg=bg_color, fg=fg_color,
                             insertbackground=fg_color)
-    toggle_time_button.configure(bg=trough_color, fg=fg_color)
+    toggle_time_button.configure(bg="#555555", fg=fg_color)
 
     save_config()
 
@@ -99,7 +99,6 @@ def toggle_time_input():
         slider_frame.pack_forget()
         custom_time_frame.pack(pady=(10, 20))
         toggle_time_button.config(text="Use Preset Slider Time")
-        # Clear and focus the hours entry
         hours_entry.delete(0, tk.END)
         minutes_entry.delete(0, tk.END)
         hours_entry.focus_set()
@@ -223,9 +222,9 @@ root.title("Lazy Shutdown")
 root.geometry("700x550")
 root.attributes("-topmost", True)
 
-# Add greeting label
+# Add greeting label with username
 greeting_label = tk.Label(root,
-                          text=f"Hello, {get_device_name()}!",
+                          text=f"Hello, {get_user_name()}!",
                           font=("Helvetica", 14, "bold"),
                           bg="#2E2E2E",
                           fg="white",
@@ -243,9 +242,76 @@ instr_label = tk.Label(main_frame, text="Select delay for shutdown:", font=(
     "Helvetica", 12), bg="#2E2E2E", fg="white")
 instr_label.pack(pady=(0, 10))
 
-# Slider frame
+# Time display label
+time_label = tk.Label(main_frame, text="Shutdown at: Not scheduled", font=(
+    "Helvetica", 14), bg="#2E2E2E", fg="white")
+time_label.pack(pady=(15, 10))
+
+# Custom time frame (initially hidden)
+custom_time_frame = tk.Frame(main_frame, bg="#2E2E2E")
+
+hours_label = tk.Label(custom_time_frame, text="Hours:",
+                       bg="#2E2E2E", fg="white")
+hours_label.pack(side=tk.LEFT, padx=5)
+hours_entry = tk.Entry(custom_time_frame, width=5,
+                       bg="#2E2E2E", fg="white", insertbackground="white")
+hours_entry.pack(side=tk.LEFT, padx=5)
+
+minutes_label = tk.Label(
+    custom_time_frame, text="Minutes:", bg="#2E2E2E", fg="white")
+minutes_label.pack(side=tk.LEFT, padx=5)
+minutes_entry = tk.Entry(custom_time_frame, width=5,
+                         bg="#2E2E2E", fg="white", insertbackground="white")
+minutes_entry.pack(side=tk.LEFT, padx=5)
+
+# Button frame
+btn_frame = tk.Frame(main_frame, bg="#2E2E2E")
+btn_frame.pack(pady=10)
+
+# First row of buttons (2x2 grid)
+button_grid = tk.Frame(btn_frame, bg="#2E2E2E")
+button_grid.pack()
+
+# First column
+col1 = tk.Frame(button_grid, bg="#2E2E2E")
+col1.pack(side=tk.LEFT, padx=5)
+
+schedule_button = tk.Button(col1, text="Schedule Shutdown",
+                            command=schedule_shutdown, width=18, bg="#404040", fg="white")
+schedule_button.pack(pady=5)
+
+toggle_button = tk.Button(col1, text="Enable Invisibility",
+                          command=toggle_invisibility, width=18, bg="#404040", fg="white")
+toggle_button.pack(pady=5)
+
+# Second column
+col2 = tk.Frame(button_grid, bg="#2E2E2E")
+col2.pack(side=tk.LEFT, padx=5)
+
+cancel_button = tk.Button(col2, text="Cancel Shutdown", command=cancel_shutdown,
+                          state=tk.DISABLED, width=18, bg="#404040", fg="white")
+cancel_button.pack(pady=5)
+
+# Theme selection
+themes = ["white", "light_grey", "dark_grey", "black"]
+theme_var = tk.StringVar(value=current_theme)
+
+theme_menu = tk.OptionMenu(col2, theme_var, *themes, command=apply_theme)
+theme_menu.config(width=15, bg="#404040", fg="white")
+theme_menu.pack(pady=5)
+
+# Special toggle time button (centered below the grid)
+toggle_time_button = tk.Button(btn_frame, text="Use Custom Time",
+                               command=toggle_time_input, width=18, bg="#555555", fg="white")
+toggle_time_button.pack(pady=(15, 5))
+
+invisibility_label = tk.Label(btn_frame, text="", font=(
+    "Helvetica", 10), bg="#2E2E2E", fg="white")
+invisibility_label.pack()
+
+# Slider frame (now at bottom)
 slider_frame = tk.Frame(main_frame, bg="#2E2E2E")
-slider_frame.pack()
+slider_frame.pack(pady=(20, 0))
 
 # Slider widgets
 tick_canvas = tk.Canvas(slider_frame, width=SLIDER_LENGTH +
@@ -287,67 +353,6 @@ def update_slider_ticks():
 
 
 update_slider_ticks()
-
-# Time display label
-time_label = tk.Label(main_frame, text="Shutdown at: Not scheduled", font=(
-    "Helvetica", 14), bg="#2E2E2E", fg="white")
-time_label.pack(pady=(15, 10))
-
-# Custom time frame (initially hidden)
-custom_time_frame = tk.Frame(main_frame, bg="#2E2E2E")
-
-hours_label = tk.Label(custom_time_frame, text="Hours:",
-                       bg="#2E2E2E", fg="white")
-hours_label.pack(side=tk.LEFT, padx=5)
-hours_entry = tk.Entry(custom_time_frame, width=5,
-                       bg="#2E2E2E", fg="white", insertbackground="white")
-hours_entry.pack(side=tk.LEFT, padx=5)
-
-minutes_label = tk.Label(
-    custom_time_frame, text="Minutes:", bg="#2E2E2E", fg="white")
-minutes_label.pack(side=tk.LEFT, padx=5)
-minutes_entry = tk.Entry(custom_time_frame, width=5,
-                         bg="#2E2E2E", fg="white", insertbackground="white")
-minutes_entry.pack(side=tk.LEFT, padx=5)
-
-# Button frame
-btn_frame = tk.Frame(main_frame, bg="#2E2E2E")
-btn_frame.pack(pady=10)
-
-schedule_button = tk.Button(btn_frame, text="Schedule Shutdown",
-                            command=schedule_shutdown, width=18, bg="#404040", fg="white")
-schedule_button.grid(row=0, column=0, padx=5)
-
-cancel_button = tk.Button(btn_frame, text="Cancel Shutdown", command=cancel_shutdown,
-                          state=tk.DISABLED, width=18, bg="#404040", fg="white")
-cancel_button.grid(row=0, column=1, padx=5)
-
-toggle_time_button = tk.Button(btn_frame, text="Use Custom Time",
-                               command=toggle_time_input, width=18, bg="#404040", fg="white")
-toggle_time_button.grid(row=1, column=0, padx=5, pady=5)
-
-toggle_button = tk.Button(btn_frame, text="Enable Invisibility",
-                          command=toggle_invisibility, width=18, bg="#404040", fg="white")
-toggle_button.grid(row=1, column=1, padx=5, pady=5)
-
-invisibility_label = tk.Label(btn_frame, text="", font=(
-    "Helvetica", 10), bg="#2E2E2E", fg="white")
-invisibility_label.grid(row=2, column=0, columnspan=2, pady=(5, 0))
-
-# Theme selection
-themes = ["white", "light_grey", "dark_grey", "black"]
-theme_var = tk.StringVar(value=current_theme)
-
-
-def on_theme_select(*args):
-    selected_theme = theme_var.get()
-    apply_theme(selected_theme)
-
-
-theme_menu = tk.OptionMenu(btn_frame, theme_var, *
-                           themes, command=on_theme_select)
-theme_menu.config(width=15, bg="#404040", fg="white")
-theme_menu.grid(row=3, column=0, padx=5, pady=5)
 
 # Apply initial theme
 apply_theme(current_theme)
