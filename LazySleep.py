@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import json
 import os
 import getpass
+import ctypes
+import sys
 
 # Constants
 DEFAULT_MAX_MINUTES = 180  # Default slider max (3 hours)
@@ -24,10 +26,27 @@ current_shutdown_minutes = 0  # Track current shutdown time
 CONFIG_FILE = "config.json"
 
 
-def get_user_name():
+def get_microsoft_account_name():
     try:
-        return getpass.getuser()
-    except:
+        if sys.platform == 'win32':
+            # First try to get the friendly Microsoft account name
+            GetUserNameEx = ctypes.windll.secur32.GetUserNameExW
+            NameDisplay = 3  # Display name format
+
+            # First call to get size needed
+            size = ctypes.c_ulong(0)
+            GetUserNameEx(NameDisplay, None, ctypes.byref(size))
+
+            if size.value > 0:
+                buffer = ctypes.create_unicode_buffer(size.value)
+                if GetUserNameEx(NameDisplay, buffer, ctypes.byref(size)):
+                    return buffer.value
+
+            # Fallback to local username if Microsoft account name not available
+            return getpass.getuser()
+        return "User"
+    except Exception as e:
+        print(f"Error getting username: {e}")
         return "User"
 
 
@@ -125,10 +144,13 @@ def set_custom_time():
 
 def update_time_display(minutes):
     global current_shutdown_minutes
-    current_shutdown_minutes = minutes
-    future_time = datetime.now() + timedelta(minutes=minutes)
-    time_label.config(
-        text=f"Shutdown at: {future_time.strftime('%I:%M:%S %p')}")
+    try:
+        current_shutdown_minutes = int(minutes)  # Convert to integer
+        future_time = datetime.now() + timedelta(minutes=current_shutdown_minutes)
+        time_label.config(
+            text=f"Shutdown at: {future_time.strftime('%I:%M:%S %p')}")
+    except ValueError:
+        time_label.config(text="Shutdown at: Invalid time")
 
 
 def cancel_shutdown():
@@ -224,7 +246,7 @@ root.attributes("-topmost", True)
 
 # Add greeting label with username
 greeting_label = tk.Label(root,
-                          text=f"Hello, {get_user_name()}!",
+                          text=f"Hello, {get_microsoft_account_name()}!",
                           font=("Helvetica", 14, "bold"),
                           bg="#2E2E2E",
                           fg="white",
@@ -303,7 +325,7 @@ theme_menu.pack(pady=5)
 # Special toggle time button (centered below the grid)
 toggle_time_button = tk.Button(btn_frame, text="Use Custom Time",
                                command=toggle_time_input, width=18, bg="#555555", fg="white")
-toggle_time_button.pack(pady=(15, 5))
+toggle_time_button.pack(pady=(15, 5))  # Extra padding to separate from grid
 
 invisibility_label = tk.Label(btn_frame, text="", font=(
     "Helvetica", 10), bg="#2E2E2E", fg="white")
