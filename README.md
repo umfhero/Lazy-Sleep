@@ -15,6 +15,11 @@ I made this because I like being lazy. When I’m in bed with just my mouse (no 
 
 If I’m still awake and change my mind? No problem – one click cancels it. And because I like things looking neat, there’s a dark mode and even an "invisibility mode" that hides the window when I move my mouse away. Effortless.
 
+## Use Cases
+
+- People who want their PC to automatically shut down after their game installation finishes (e.g. matching the download time).
+- People who watch films/shows in bed and either enjoy falling asleep or accidentally find themselves dozing off.
+
 ## Features
 
 - Set shutdown timer with slider (up to 3 hours) or manual input (any duration)
@@ -22,7 +27,7 @@ If I’m still awake and change my mind? No problem – one click cancels it. An
 - Toggle between light and dark themes
 - "Invisibility mode" that hides the window when the mouse moves away
 - Cancel scheduled shutdowns
-- Personalized greeting with your account name
+- Personalised greeting with your account name
 
 ## How to Use
 
