@@ -40,10 +40,15 @@ def get_microsoft_account_name():
             if size.value > 0:
                 buffer = ctypes.create_unicode_buffer(size.value)
                 if GetUserNameEx(NameDisplay, buffer, ctypes.byref(size)):
-                    return buffer.value
+                    # Get first name only and capitalize it
+                    full_name = buffer.value
+                    first_name = full_name.split(
+                    )[0] if full_name else getpass.getuser()
+                    return first_name.capitalize()
 
             # Fallback to local username if Microsoft account name not available
-            return getpass.getuser()
+            username = getpass.getuser()
+            return username.capitalize()
         return "User"
     except Exception as e:
         print(f"Error getting username: {e}")
