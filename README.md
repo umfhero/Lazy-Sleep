@@ -9,7 +9,10 @@ App:
 </p>
 
 Icon:
-<img align="right" width="100" height="100" src="/exe icon.png">
+<img align="left" width="150" height="150" src="/exe icon.png">
+
+
+
 
 ## Why I Made This
 
