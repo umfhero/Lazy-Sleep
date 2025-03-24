@@ -4,26 +4,31 @@ import subprocess
 from datetime import datetime, timedelta
 import json
 import os
+import socket
 
 # Constants
-SLIDER_MIN = 0
-SLIDER_MAX = 180  # minutes (3 hours)
+DEFAULT_MAX_MINUTES = 180  # Default slider max (3 hours)
 TICK_INTERVAL = 30  # minutes between markers
 SLIDER_LENGTH = 440  # length for the slider widget
 MARGIN = 30  # extra space on the sides to ensure text is not cut off
-# canvas width includes extra space for labels
-CANVAS_WIDTH = SLIDER_LENGTH + 2 * MARGIN
-PIXELS_PER_MINUTE = SLIDER_LENGTH / (SLIDER_MAX - SLIDER_MIN)
 DETECTION_RADIUS = 200  # extra pixels around the window for mouse detection
 
 # Global variables
 invisibility_enabled = False
 current_theme = "dark_grey"  # Default theme
+slider_max = DEFAULT_MAX_MINUTES  # Initial slider max
+using_custom_time = False  # Track if we're using custom time input
+current_shutdown_minutes = 0  # Track current shutdown time
 
 # Configuration file to save preferences
 CONFIG_FILE = "config.json"
 
-# Load saved preferences
+
+def get_device_name():
+    try:
+        return socket.gethostname()
+    except:
+        return "User"
 
 
 def load_config():
@@ -33,14 +38,10 @@ def load_config():
             config = json.load(file)
             current_theme = config.get("theme", "dark_grey")
 
-# Save preferences
-
 
 def save_config():
     with open(CONFIG_FILE, "w") as file:
         json.dump({"theme": current_theme}, file)
-
-# Apply the selected theme
 
 
 def apply_theme(theme):
@@ -63,13 +64,14 @@ def apply_theme(theme):
         fg_color = "#FFFFFF"
         trough_color = "#333333"
 
-    # Apply colors to all widgets
     root.configure(bg=bg_color)
+    greeting_label.configure(bg=bg_color, fg=fg_color)
     main_frame.configure(bg=bg_color)
     instr_label.configure(bg=bg_color, fg=fg_color)
     slider_frame.configure(bg=bg_color)
     tick_canvas.configure(bg=bg_color)
-    slider.configure(bg=bg_color, fg=fg_color, troughcolor=trough_color)
+    if hasattr(slider, 'winfo_exists') and slider.winfo_exists():
+        slider.configure(bg=bg_color, fg=fg_color, troughcolor=trough_color)
     marker_canvas.configure(bg=bg_color)
     label_canvas.configure(bg=bg_color)
     time_label.configure(bg=bg_color, fg=fg_color)
@@ -85,106 +87,121 @@ def apply_theme(theme):
     hours_entry.configure(bg=bg_color, fg=fg_color, insertbackground=fg_color)
     minutes_entry.configure(bg=bg_color, fg=fg_color,
                             insertbackground=fg_color)
-    set_custom_button.configure(bg=trough_color, fg=fg_color)
+    toggle_time_button.configure(bg=trough_color, fg=fg_color)
 
     save_config()
 
-# Function to update the time label
+
+def toggle_time_input():
+    global using_custom_time
+    if not using_custom_time:
+        using_custom_time = True
+        slider_frame.pack_forget()
+        custom_time_frame.pack(pady=(10, 20))
+        toggle_time_button.config(text="Use Preset Slider Time")
+        # Clear and focus the hours entry
+        hours_entry.delete(0, tk.END)
+        minutes_entry.delete(0, tk.END)
+        hours_entry.focus_set()
+    else:
+        using_custom_time = False
+        custom_time_frame.pack_forget()
+        slider_frame.pack()
+        toggle_time_button.config(text="Use Custom Time")
+        update_time_display(slider.get())
 
 
-def update_time_label(value):
+def set_custom_time():
     try:
-        minutes = int(value)
-    except ValueError:
-        minutes = 0
+        hours = int(hours_entry.get() or 0)
+        minutes = int(minutes_entry.get() or 0)
+        total_minutes = hours * 60 + minutes
+        if total_minutes < 0:
+            raise ValueError("Time cannot be negative")
+        update_time_display(total_minutes)
+    except ValueError as e:
+        messagebox.showerror(
+            "Invalid Input", f"Please enter valid numbers for hours and minutes.\nError: {e}")
+
+
+def update_time_display(minutes):
+    global current_shutdown_minutes
+    current_shutdown_minutes = minutes
     future_time = datetime.now() + timedelta(minutes=minutes)
-    # 12-hour format with AM/PM
     time_label.config(
         text=f"Shutdown at: {future_time.strftime('%I:%M:%S %p')}")
-
-# Function to cancel the shutdown
 
 
 def cancel_shutdown():
     subprocess.call("shutdown -a", shell=True)
     messagebox.showinfo("Cancelled", "Shutdown has been cancelled.")
     schedule_button.config(state=tk.NORMAL)
-    slider.config(state=tk.NORMAL)
+    if not using_custom_time:
+        slider.config(state=tk.NORMAL)
     cancel_button.config(state=tk.DISABLED)
-
-# Function to prompt for shutdown cancellation
 
 
 def prompt_cancel():
     answer = messagebox.askyesno("Cancel Shutdown?",
-                                 "Shutdown is scheduled in 3 minutes.\nDo you want to cancel it?")
+                                 "Shutdown is scheduled soon.\nDo you want to cancel it?")
     if answer:
         cancel_shutdown()
 
-# Function to schedule the shutdown
-
 
 def schedule_shutdown():
+    global current_shutdown_minutes
+
     try:
-        minutes = int(slider.get())
+        if using_custom_time:
+            hours = int(hours_entry.get() or 0)
+            minutes = int(minutes_entry.get() or 0)
+            current_shutdown_minutes = hours * 60 + minutes
+        else:
+            current_shutdown_minutes = int(slider.get())
     except ValueError:
-        minutes = 0
-    total_seconds = minutes * 60
+        current_shutdown_minutes = 0
+
+    total_seconds = current_shutdown_minutes * 60
+
     if total_seconds == 0:
-        messagebox.showinfo("Shutdown", "Shutting down immediately!")
+        if not messagebox.askyesno("Confirm", "Shut down immediately?"):
+            return
+
     schedule_button.config(state=tk.DISABLED)
-    slider.config(state=tk.DISABLED)
+    if not using_custom_time:
+        slider.config(state=tk.DISABLED)
     cancel_button.config(state=tk.NORMAL)
 
-    # Schedule the prompt 3 minutes before shutdown if applicable
     if total_seconds > 180:
-        delay_before_prompt = (total_seconds - 180) * 1000  # milliseconds
+        delay_before_prompt = (total_seconds - 180) * 1000
         root.after(delay_before_prompt, prompt_cancel)
 
     command = f"shutdown -s -t {total_seconds}"
     try:
         subprocess.Popen(command, shell=True)
+        update_time_display(current_shutdown_minutes)
     except Exception as e:
         messagebox.showerror("Error", f"Failed to schedule shutdown: {e}")
-
-# Function to set custom time from entry fields
-
-
-def set_custom_time():
-    try:
-        hours = int(hours_entry.get())
-        minutes = int(minutes_entry.get())
-        total_minutes = hours * 60 + minutes
-        if total_minutes < 0:
-            raise ValueError("Time cannot be negative")
-        slider.set(total_minutes)
-        update_time_label(total_minutes)
-    except ValueError as e:
-        messagebox.showerror(
-            "Invalid Input", f"Please enter valid numbers for hours and minutes.\nError: {e}")
-
-# Function to check mouse position for invisibility feature
+        schedule_button.config(state=tk.NORMAL)
+        if not using_custom_time:
+            slider.config(state=tk.NORMAL)
+        cancel_button.config(state=tk.DISABLED)
 
 
 def check_mouse():
     if invisibility_enabled:
-        # Get global pointer coordinates
         pointer_x, pointer_y = root.winfo_pointerx(), root.winfo_pointery()
-        # Get window geometry (top-left and dimensions)
         win_x = root.winfo_rootx()
         win_y = root.winfo_rooty()
         win_w = root.winfo_width()
         win_h = root.winfo_height()
 
-        # Define an extended detection area (window bounds plus extra margin)
         if (win_x - DETECTION_RADIUS <= pointer_x <= win_x + win_w + DETECTION_RADIUS and
                 win_y - DETECTION_RADIUS <= pointer_y <= win_y + win_h + DETECTION_RADIUS):
             root.attributes("-alpha", 1.0)
         else:
             root.attributes("-alpha", 0.0)
     root.after(300, check_mouse)
-
-# Function to toggle invisibility
 
 
 def toggle_invisibility():
@@ -193,83 +210,91 @@ def toggle_invisibility():
     if invisibility_enabled:
         toggle_button.config(text="Disable Invisibility")
         invisibility_label.config(
-            text="Move your mouse away to make me invisible")  # Show the label
+            text="Move your mouse away to make me invisible")
     else:
         toggle_button.config(text="Enable Invisibility")
-        # Ensure the window is visible when disabling
         root.attributes("-alpha", 1.0)
-        invisibility_label.config(text="")  # Hide the label
+        invisibility_label.config(text="")
 
 
-# Create main window and set a larger geometry
+# Main window setup
 root = tk.Tk()
 root.title("Lazy Shutdown")
-root.geometry("700x500")  # Increased height to accommodate new features
-
-# Load saved preferences
-load_config()
-
-# Make the window always on top by default (and remove the ability to turn it off)
+root.geometry("700x550")
 root.attributes("-topmost", True)
 
-# Main frame with padding
-main_frame = tk.Frame(root, padx=20, pady=20,
-                      bg="#2E2E2E")  # Dark grey background
+# Add greeting label
+greeting_label = tk.Label(root,
+                          text=f"Hello, {get_device_name()}!",
+                          font=("Helvetica", 14, "bold"),
+                          bg="#2E2E2E",
+                          fg="white",
+                          pady=10)
+greeting_label.pack(fill=tk.X)
+
+load_config()
+
+# Main frame
+main_frame = tk.Frame(root, padx=20, pady=20, bg="#2E2E2E")
 main_frame.pack(fill=tk.BOTH, expand=True)
 
 # Instruction label
-instr_label = tk.Label(main_frame, text="Select delay (in minutes) for shutdown:", font=(
+instr_label = tk.Label(main_frame, text="Select delay for shutdown:", font=(
     "Helvetica", 12), bg="#2E2E2E", fg="white")
 instr_label.pack(pady=(0, 10))
 
-# Frame to hold the slider and custom markers
-slider_frame = tk.Frame(main_frame, bg="#2E2E2E")  # Dark grey background
+# Slider frame
+slider_frame = tk.Frame(main_frame, bg="#2E2E2E")
 slider_frame.pack()
 
-# Canvas for numeric tick markers above the slider
-tick_canvas = tk.Canvas(slider_frame, width=CANVAS_WIDTH,
-                        height=30, bg="#2E2E2E", highlightthickness=0)
+# Slider widgets
+tick_canvas = tk.Canvas(slider_frame, width=SLIDER_LENGTH +
+                        2*MARGIN, height=30, bg="#2E2E2E", highlightthickness=0)
 tick_canvas.pack()
 
-# Draw numeric tick markers every 30 minutes (0, 30, 60, ... 180)
-for minute in range(SLIDER_MIN, SLIDER_MAX + 1, TICK_INTERVAL):
-    x = MARGIN + (minute - SLIDER_MIN) * PIXELS_PER_MINUTE
-    tick_canvas.create_text(x, 10, text=str(minute), font=(
-        "Helvetica", 10), anchor=tk.CENTER, fill="white")  # White text
-
-# The slider (Scale widget)
-slider = tk.Scale(slider_frame, from_=SLIDER_MIN, to=SLIDER_MAX, orient=tk.HORIZONTAL,
-                  length=SLIDER_LENGTH, showvalue=0, command=update_time_label, bg="#2E2E2E", fg="white", troughcolor="#404040")
+slider = tk.Scale(slider_frame, from_=0, to=DEFAULT_MAX_MINUTES, orient=tk.HORIZONTAL,
+                  length=SLIDER_LENGTH, showvalue=0, command=update_time_display,
+                  bg="#2E2E2E", fg="white", troughcolor="#404040")
 slider.pack(pady=5)
 
-# Canvas overlay for marker lines inside the slider
-marker_canvas = tk.Canvas(slider_frame, width=CANVAS_WIDTH,
-                          height=20, bg="#2E2E2E", highlightthickness=0)
+marker_canvas = tk.Canvas(slider_frame, width=SLIDER_LENGTH +
+                          2*MARGIN, height=20, bg="#2E2E2E", highlightthickness=0)
 marker_canvas.pack()
 
-# Draw marker lines inside the slider
-for minute in range(SLIDER_MIN, SLIDER_MAX + 1, TICK_INTERVAL):
-    x = MARGIN + (minute - SLIDER_MIN) * PIXELS_PER_MINUTE
-    marker_canvas.create_line(x, 0, x, 20, width=2,
-                              fill="white")  # White lines
-
-# Canvas for hour labels below the slider (0, 1, 2, 3 hours)
-label_canvas = tk.Canvas(slider_frame, width=CANVAS_WIDTH,
-                         height=20, bg="#2E2E2E", highlightthickness=0)
+label_canvas = tk.Canvas(slider_frame, width=SLIDER_LENGTH +
+                         2*MARGIN, height=20, bg="#2E2E2E", highlightthickness=0)
 label_canvas.pack()
-for minute, label in zip([0, 60, 120, 180], ["0 hours", "1 hour", "2 hours", "3 hours"]):
-    x = MARGIN + (minute - SLIDER_MIN) * PIXELS_PER_MINUTE
-    label_canvas.create_text(x, 10, text=label, font=(
-        "Helvetica", 10), anchor=tk.CENTER, fill="white")  # White text
 
-# Label to display the expected shutdown time
-time_label = tk.Label(main_frame, text="Shutdown at:", font=(
-    "Helvetica", 14), bg="#2E2E2E", fg="white")  # White text
+
+def update_slider_ticks():
+    tick_canvas.delete("all")
+    marker_canvas.delete("all")
+    label_canvas.delete("all")
+    pixels_per_minute = SLIDER_LENGTH / slider_max
+
+    for minute in range(0, slider_max + 1, TICK_INTERVAL):
+        x = MARGIN + minute * pixels_per_minute
+        tick_canvas.create_text(x, 10, text=str(minute), font=(
+            "Helvetica", 10), anchor=tk.CENTER, fill="white")
+        marker_canvas.create_line(x, 0, x, 20, width=2, fill="white")
+
+    for hour in range(0, (slider_max // 60) + 1):
+        minutes = hour * 60
+        x = MARGIN + minutes * pixels_per_minute
+        label_text = f"{hour} hour{'s' if hour != 1 else ''}"
+        label_canvas.create_text(x, 10, text=label_text, font=(
+            "Helvetica", 10), anchor=tk.CENTER, fill="white")
+
+
+update_slider_ticks()
+
+# Time display label
+time_label = tk.Label(main_frame, text="Shutdown at: Not scheduled", font=(
+    "Helvetica", 14), bg="#2E2E2E", fg="white")
 time_label.pack(pady=(15, 10))
 
-# Custom time input frame
+# Custom time frame (initially hidden)
 custom_time_frame = tk.Frame(main_frame, bg="#2E2E2E")
-custom_time_frame.pack(pady=(10, 20))
 
 hours_label = tk.Label(custom_time_frame, text="Hours:",
                        bg="#2E2E2E", fg="white")
@@ -285,12 +310,8 @@ minutes_entry = tk.Entry(custom_time_frame, width=5,
                          bg="#2E2E2E", fg="white", insertbackground="white")
 minutes_entry.pack(side=tk.LEFT, padx=5)
 
-set_custom_button = tk.Button(custom_time_frame, text="Set Custom Time",
-                              command=set_custom_time, bg="#404040", fg="white")
-set_custom_button.pack(side=tk.LEFT, padx=10)
-
-# Buttons frame
-btn_frame = tk.Frame(main_frame, bg="#2E2E2E")  # Dark grey background
+# Button frame
+btn_frame = tk.Frame(main_frame, bg="#2E2E2E")
 btn_frame.pack(pady=10)
 
 schedule_button = tk.Button(btn_frame, text="Schedule Shutdown",
@@ -301,21 +322,21 @@ cancel_button = tk.Button(btn_frame, text="Cancel Shutdown", command=cancel_shut
                           state=tk.DISABLED, width=18, bg="#404040", fg="white")
 cancel_button.grid(row=0, column=1, padx=5)
 
-# Toggle invisibility button (default is OFF)
+toggle_time_button = tk.Button(btn_frame, text="Use Custom Time",
+                               command=toggle_time_input, width=18, bg="#404040", fg="white")
+toggle_time_button.grid(row=1, column=0, padx=5, pady=5)
+
 toggle_button = tk.Button(btn_frame, text="Enable Invisibility",
                           command=toggle_invisibility, width=18, bg="#404040", fg="white")
-toggle_button.grid(row=1, column=0, padx=5, pady=5)
+toggle_button.grid(row=1, column=1, padx=5, pady=5)
 
-# Label to describe the invisibility feature (initially hidden)
 invisibility_label = tk.Label(btn_frame, text="", font=(
-    "Helvetica", 10), bg="#2E2E2E", fg="white")  # White text
+    "Helvetica", 10), bg="#2E2E2E", fg="white")
 invisibility_label.grid(row=2, column=0, columnspan=2, pady=(5, 0))
 
-# Theme selection drop-down
+# Theme selection
 themes = ["white", "light_grey", "dark_grey", "black"]
-theme_var = tk.StringVar(value=current_theme)  # Default theme
-
-# Function to handle theme selection from the drop-down
+theme_var = tk.StringVar(value=current_theme)
 
 
 def on_theme_select(*args):
@@ -323,17 +344,15 @@ def on_theme_select(*args):
     apply_theme(selected_theme)
 
 
-# Create the OptionMenu widget
 theme_menu = tk.OptionMenu(btn_frame, theme_var, *
                            themes, command=on_theme_select)
 theme_menu.config(width=15, bg="#404040", fg="white")
 theme_menu.grid(row=3, column=0, padx=5, pady=5)
 
-# Apply the initial theme after all widgets are created
+# Apply initial theme
 apply_theme(current_theme)
 
-# Start checking the mouse position
+# Start mouse checking
 check_mouse()
 
-# Start the GUI loop
 root.mainloop()
