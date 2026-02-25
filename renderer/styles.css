@@ -1,0 +1,456 @@
+/* ────────────────────────────────────────────────────────────────────────────
+   Lazy Sleep – Styles (designrules.md compliant)
+   • Flat, opaque, 1px borders, no shadows/gradients/glow
+   • Technical sans-serif, rigid grid, aggressively 2D
+   ──────────────────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+/* ── Reset ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── CSS custom properties (theme: dark_grey default) ────────────────────── */
+:root {
+  --bg:       #2e2e2e;
+  --bg-alt:   #3a3a3a;
+  --fg:       #e0e0e0;
+  --fg-dim:   #999999;
+  --border:   #555555;
+  --trough:   #404040;
+  --accent:   #e8751a;
+
+  --font-sans:  'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-mono:  'IBM Plex Mono', 'Consolas', monospace;
+}
+
+/* ── Theme overrides ─────────────────────────────────────────────────────── */
+body.theme-white {
+  --bg:       #ffffff;
+  --bg-alt:   #f4f4f4;
+  --fg:       #1a1a1a;
+  --fg-dim:   #666666;
+  --border:   #1a1a1a;
+  --trough:   #dddddd;
+  --accent:   #d46a15;
+}
+
+body.theme-light_grey {
+  --bg:       #f0f0f0;
+  --bg-alt:   #e4e4e4;
+  --fg:       #1a1a1a;
+  --fg-dim:   #666666;
+  --border:   #1a1a1a;
+  --trough:   #cccccc;
+  --accent:   #d46a15;
+}
+
+body.theme-dark_grey {
+  --bg:       #2e2e2e;
+  --bg-alt:   #3a3a3a;
+  --fg:       #e0e0e0;
+  --fg-dim:   #999999;
+  --border:   #555555;
+  --trough:   #404040;
+  --accent:   #e8751a;
+}
+
+body.theme-black {
+  --bg:       #0a0a0a;
+  --bg-alt:   #161616;
+  --fg:       #e0e0e0;
+  --fg-dim:   #777777;
+  --border:   #333333;
+  --trough:   #1e1e1e;
+  --accent:   #e8751a;
+}
+
+/* ── Body ────────────────────────────────────────────────────────────────── */
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+/* ── Titlebar (frameless window) ─────────────────────────────────────────── */
+#titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  padding: 0 10px;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+  -webkit-app-region: drag;          /* draggable */
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+}
+
+#titlebar-controls {
+  display: flex;
+  gap: 2px;
+  -webkit-app-region: no-drag;
+}
+
+#titlebar-controls button {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  color: var(--fg-dim);
+  font-size: 14px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+#titlebar-controls button:hover {
+  background: var(--border);
+  color: var(--fg);
+}
+
+/* ── Main layout ─────────────────────────────────────────────────────────── */
+main {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 32px);
+  padding: 0;
+}
+
+/* ── Zones (compartmentalised, 1px border separated) ─────────────────────── */
+section {
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+section:last-child {
+  border-bottom: none;
+}
+
+/* ── Greeting ────────────────────────────────────────────────────────────── */
+#zone-greeting {
+  padding: 10px 24px;
+}
+
+#greeting-text {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--fg);
+}
+
+/* ── Shutdown display ────────────────────────────────────────────────────── */
+#zone-display {
+  text-align: center;
+  padding: 20px 24px;
+}
+
+#shutdown-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--fg-dim);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+#shutdown-time {
+  font-family: var(--font-mono);
+  font-size: 36px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--fg);
+}
+
+/* ── Controls grid ───────────────────────────────────────────────────────── */
+#zone-controls {
+  padding: 16px 24px;
+}
+
+#controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Buttons */
+.ctrl-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: none;
+}
+
+.ctrl-btn:hover:not(:disabled) {
+  background: var(--bg-alt);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ctrl-btn:disabled {
+  color: var(--fg-dim);
+  cursor: default;
+  opacity: 0.5;
+}
+
+.ctrl-btn--alt {
+  margin-top: 10px;
+  width: 100%;
+  border-style: dashed;
+}
+
+/* Theme select */
+.ctrl-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  padding: 0 12px;
+  background: var(--bg);
+}
+
+.ctrl-select-wrapper label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--fg-dim);
+  white-space: nowrap;
+}
+
+#theme-select {
+  flex: 1;
+  background: var(--bg);
+  color: var(--fg);
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 10px 0;
+  cursor: pointer;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#theme-select option {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* Invisibility hint */
+#invisibility-hint {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-dim);
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+  min-height: 14px;
+}
+
+/* ── Slider zone ─────────────────────────────────────────────────────────── */
+#zone-slider {
+  padding: 14px 24px 18px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#slider-header {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--fg-dim);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+/* Tick label row (minute numbers) */
+#slider-tick-labels,
+#slider-hour-labels {
+  position: relative;
+  height: 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-dim);
+}
+
+#slider-tick-labels {
+  margin-bottom: 4px;
+}
+
+#slider-hour-labels {
+  margin-top: 4px;
+}
+
+/* Tick marks row */
+#slider-tick-marks {
+  position: relative;
+  height: 10px;
+  margin-top: 2px;
+}
+
+#slider-tick-marks .tick {
+  width: 1px;
+  height: 10px;
+  background: var(--border);
+}
+
+/* Range input – flat, no shadow, thin track */
+#slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2px;
+  background: var(--border);
+  outline: none;
+  margin: 4px 0;
+}
+
+#slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+/* ── Custom time zone ────────────────────────────────────────────────────── */
+#zone-custom {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  padding: 18px 24px;
+}
+
+#zone-custom.hidden {
+  display: none;
+}
+
+.custom-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.custom-field label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--fg-dim);
+}
+
+.custom-field input {
+  width: 64px;
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  outline: none;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.custom-field input::-webkit-inner-spin-button,
+.custom-field input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.custom-field input:focus {
+  border-color: var(--accent);
+}
+
+/* ── Countdown ────────────────────────────────────────────────────────────── */
+#countdown-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+}
+
+#countdown-row.hidden {
+  display: none;
+}
+
+#countdown-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+}
+
+#countdown-time {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--accent);
+}
+
+/* ── Timer mode ───────────────────────────────────────────────────────────── */
+body.timer-mode #zone-greeting,
+body.timer-mode #zone-controls,
+body.timer-mode #zone-slider,
+body.timer-mode #zone-custom {
+  display: none !important;
+}
+
+body.timer-mode #zone-display {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: none;
+  padding: 24px;
+}
+
+body.timer-mode #shutdown-time {
+  font-size: 42px;
+}
+
+body.timer-mode #countdown-time {
+  font-size: 30px;
+}
+
+#btn-cancel-timer {
+  margin-top: 18px;
+  width: 200px;
+}
+
+#btn-cancel-timer.hidden {
+  display: none;
+}
+
+/* ── Utility ─────────────────────────────────────────────────────────────── */
+.hidden {
+  display: none !important;
+}

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lazy Sleep</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- Custom title bar (frameless window) -->
+    <header id="titlebar">
+        <span id="titlebar-label">LAZY SLEEP</span>
+        <div id="titlebar-controls">
+            <button id="btn-minimize" aria-label="Minimize">&#x2500;</button>
+            <button id="btn-close" aria-label="Close">&#x2715;</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Greeting zone -->
+        <section id="zone-greeting">
+            <span id="greeting-text">Hello, User!</span>
+        </section>
+
+        <!-- Time display zone -->
+        <section id="zone-display">
+            <div id="shutdown-label">SHUTDOWN AT</div>
+            <div id="shutdown-time">--:--:-- --</div>
+            <div id="countdown-row" class="hidden">
+                <span id="countdown-label">TIME LEFT</span>
+                <span id="countdown-time"></span>
+            </div>
+            <button id="btn-cancel-timer" class="ctrl-btn hidden">CANCEL SHUTDOWN</button>
+        </section>
+
+        <!-- Controls zone -->
+        <section id="zone-controls">
+            <div id="controls-grid">
+                <button id="btn-schedule" class="ctrl-btn">SCHEDULE SHUTDOWN</button>
+                <button id="btn-cancel" class="ctrl-btn" disabled>CANCEL SHUTDOWN</button>
+                <button id="btn-invisibility" class="ctrl-btn">ENABLE INVISIBILITY</button>
+                <div class="ctrl-select-wrapper">
+                    <label for="theme-select">THEME</label>
+                    <select id="theme-select">
+                        <option value="white">White</option>
+                        <option value="light_grey">Light Grey</option>
+                        <option value="dark_grey" selected>Dark Grey</option>
+                        <option value="black">Black</option>
+                    </select>
+                </div>
+            </div>
+            <button id="btn-toggle-input" class="ctrl-btn ctrl-btn--alt">USE CUSTOM TIME</button>
+            <div id="invisibility-hint"></div>
+        </section>
+
+        <!-- Slider zone -->
+        <section id="zone-slider">
+            <div id="slider-header">SELECT DELAY (MINUTES)</div>
+            <div id="slider-tick-labels"></div>
+            <input type="range" id="slider" min="0" max="180" value="0" step="1">
+            <div id="slider-tick-marks"></div>
+            <div id="slider-hour-labels"></div>
+        </section>
+
+        <!-- Custom time zone (hidden by default) -->
+        <section id="zone-custom" class="hidden">
+            <div class="custom-field">
+                <label for="input-hours">HOURS</label>
+                <input type="number" id="input-hours" min="0" value="0">
+            </div>
+            <div class="custom-field">
+                <label for="input-minutes">MINUTES</label>
+                <input type="number" id="input-minutes" min="0" max="59" value="0">
+            </div>
+        </section>
+    </main>
+
+    <script src="renderer.js"></script>
+</body>
+
+</html>

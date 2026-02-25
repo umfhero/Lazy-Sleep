@@ -1,58 +1,60 @@
 # Lazy Sleep - Smart Shutdown Timer
 
-A customizable shutdown timer application with both slider and manual time input options.
+An Electron-based shutdown timer app. Set a timer with a slider or manual input, schedule Windows shutdown, and forget about it.
 
-App & Icon:
+## Todo
 
-<p align="left">
-  <img width="490" height="385" src="Sleepy.png" style="margin-right: 20px;">
-  <img width="120" height="120" src="/exe icon.png" style="margin-left: 20px;">
-</p>
+### Core Functionality
 
-## Why I Made This
+- [x] **Slider timer** — Horizontal slider (0–180 min) to pick shutdown delay
+- [x] **Custom time input** — Toggle to manual hours/minutes entry for any duration
+- [x] **Schedule shutdown** — Execute `shutdown -s -t <seconds>` via Node child_process
+- [x] **Cancel shutdown** — Execute `shutdown -a` to abort a pending shutdown
+- [x] **Countdown display** — Show the calculated shutdown time (e.g. "Shutdown at: 11:42 PM")
+- [x] **Prompt before shutdown** — If >3 min scheduled, prompt user 3 min before to confirm/cancel
+- [x] **Immediate shutdown confirmation** — Confirm dialog when slider is at 0
 
-I made this because I like being lazy. When I’m in bed with just my mouse (no keyboard in reach), I want a simple way to set a shutdown timer without faffing about. **Lazy Sleep** lets me do exactly that. Just move a slider, click a button, and forget about it.
+### UI / Visuals (follows designrules.md)
 
-If I’m still awake and change my mind? No problem – one click cancels it. And because I like things looking neat, there’s a dark mode and even an "invisibility mode" that hides the window when I move my mouse away. Effortless.
+- [x] **Flat, opaque UI** — No gradients, no shadows, no glassmorphism, solid matte backgrounds
+- [x] **1px border containers** — All panels, buttons, inputs defined by thin dark borders
+- [x] **Technical sans-serif typography** — Clean, utilitarian font (e.g. Inter, IBM Plex Sans)
+- [x] **Functional type scaling** — Large countdown/time display, small uniform labels
+- [x] **Muted natural palette** — Monochromatic base (off-white / sage / dark grey) with black text/lines
+- [x] **No emojis** — Thin-stroke line-art icons only
+- [x] **Rigid grid layout** — Dashboard/schematic aesthetic, compartmentalised zones
+- [x] **Aggressively 2D** — No depth, no layering effects, hard edges only
 
-## Use Cases
+### Theming
 
-- People who want their PC to automatically shut down after their game installation finishes (e.g. matching the download time).
-- People who watch films/shows in bed and either enjoy falling asleep or accidentally find themselves dozing off.
+- [x] **Theme switcher** — Dropdown to select: white, light grey, dark grey, black
+- [x] **Persist theme** — Save selection to config.json, restore on launch
 
-## Features
+### Window Behaviour
 
-- Set shutdown timer with slider (up to 3 hours) or manual input (any duration)
-- Visual countdown display
-- Toggle between light and dark themes
-- "Invisibility mode" that hides the window when the mouse moves away
-- Cancel scheduled shutdowns
-- Personalised greeting with your account name
+- [x] **Always on top** — Window stays above all others
+- [x] **Invisibility mode** — Toggle to auto-hide (opacity 0) when mouse leaves detection radius; reappear on hover
+- [x] **Personalised greeting** — Display "Hello, {username}!" using OS account name
 
-## How to Use
+### Packaging
 
-1. **Select Time**:
+- [ ] **Electron Builder** — Package as standalone `.exe` for Windows via `electron-builder`
+- [ ] **Custom icon** — App icon (clock2.ico) applied to window and exe
 
-   - Use the slider at the bottom (0-180 minutes)
-   - OR click "Use Custom Time" to enter hours/minutes manually
+## Development
 
-2. **Schedule Shutdown**:
+```bash
+npm install
+npm start
+```
 
-   - Click "Schedule Shutdown" to confirm
-   - The display will show your shutdown time
+## Build
 
-3. **Cancel Shutdown**:
-
-   - Click "Cancel Shutdown" if you change your mind
-
-4. **Customise**:
-   - Change themes via the dropdown menu
-   - Enable "Invisibility" to auto-hide the window
+```bash
+npm run build
+```
 
 ## Requirements
 
 - Windows 10/11
-- Python 3.6+
-
-delete build/dist
-pyinstaller --noconsole --add-data "config.json;." --add-data "clock2.ico;." --icon=clock2.ico LazySleep.py
+- Node.js 18+

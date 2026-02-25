@@ -1,0 +1,35 @@
+{
+  "name": "lazy-sleep",
+  "version": "2.0.0",
+  "description": "Smart Shutdown Timer - Electron App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.lazysleep.app",
+    "productName": "Lazy Sleep",
+    "win": {
+      "target": "nsis",
+      "icon": "clock2.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "config.json",
+      "clock2.ico"
+    ]
+  }
+}

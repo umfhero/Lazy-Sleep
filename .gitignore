@@ -1,13 +1,12 @@
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
+# Dependencies
+node_modules/
+package-lock.json
 
 # Build artifacts
-build/
 dist/
-*.spec
+build/
+out/
+*.exe
 
 # OS files
 .DS_Store
@@ -15,5 +14,4 @@ Thumbs.db
 
 # Environment files
 .env
-.venv
 config.json
