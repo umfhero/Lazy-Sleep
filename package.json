@@ -17,8 +17,11 @@
     "appId": "com.lazysleep.app",
     "productName": "Lazy Sleep",
     "win": {
-      "target": "nsis",
-      "icon": "clock2.ico"
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "clock2_256.ico"
     },
     "nsis": {
       "oneClick": true,
@@ -27,9 +30,10 @@
     "files": [
       "main.js",
       "preload.js",
-      "renderer/**/*",
+      "renderer/",
       "config.json",
-      "clock2.ico"
+      "clock2.ico",
+      "clock2_256.ico"
     ]
   }
 }
